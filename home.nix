@@ -88,6 +88,10 @@
     oh-my-zsh = {
       enable = true;
     };
+    shellAliases = {
+      nfc = "$EDITOR $NIX_CONF";
+      nvc = "$EDITOR $NVIM_CONF";
+    };
     plugins = [
       {
         name = "zsh-powerlevel10k";
