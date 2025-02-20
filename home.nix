@@ -1,6 +1,8 @@
-{ config, pkgs, ... }:
-
-{
+{ config, pkgs, ... }: {
+  nixpkgs.config = {
+    allowUnfree = true;
+    allowUnfreePredicate = (_: true);
+  };
   # Home Manager needs a bit of information about you and the paths it should
   # manage.
   home.username = "hirw";
@@ -17,10 +19,14 @@
 
   # The home.packages option allows you to install Nix packages into your
   # environment.
+
   home.packages = with pkgs; [
     neovim
     kitty
-    (pkgs.nerdfonts.override { fonts = [ "IosevkaTerm" ]; })
+    discord
+    osu-lazer
+    (nerdfonts.override { fonts = [ "IosevkaTerm" ]; })
+    # nerd-fonts.iosevka-term
 
     # # It is sometimes useful to fine-tune packages, for example, by applying
     # # overrides. You can do that directly here, just don't forget the
@@ -71,6 +77,7 @@
     EDITOR = "nvim";
     NIX_CONF = "$HOME/.config/nix";
     NVIM_CONF = "$HOME/.config/nvim";
+    NIXOS_OZONE_WL = 1;
   };
 
   # Let Home Manager install and manage itself.
@@ -78,11 +85,20 @@
 
   programs.zsh = {
     enable = true;
-    shellAliases = {
-      ll = "ls -l";
-      nfc = "$EDITOR $NIX_CONF";
-      hmc = "$EDITOR $NIX_CONF/home.nix";
-      nvc = "$EDITOR $NVIM_CONF";
+    oh-my-zsh = {
+      enable = true;
     };
+    plugins = [
+      {
+        name = "zsh-powerlevel10k";
+        src = "${pkgs.zsh-powerlevel10k}/share/zsh-powerlevel10k/";
+        file = "powerlevel10k.zsh-theme";
+      }
+      {
+        name = "powerlevel10k-config";
+        src = ./p10k-config;
+        file = ".p10k.zsh";
+      }
+    ];
   };
 }

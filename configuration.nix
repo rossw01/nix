@@ -21,8 +21,23 @@
   # Enable networking
   networking.networkmanager.enable = true;
 
-  # Enable network manager applet
-  programs.nm-applet.enable = true;
+  fileSystems."/mnt/HDD" = {
+    device = "/dev/disk/by-uuid/01D8BA822599C960";
+    fsType = "ntfs";
+    options = [
+      "users" # Anyone can mount tha HDD!!!!!!
+      "nofail" # No biggie if we cant mount it <:-D
+    ];
+  };
+
+  fileSystems."/mnt/SSD2" = {
+    device = "/dev/disk/by-uuid/01DAEB9EA9367710";
+    fsType = "ntfs";
+    options = [
+      "users" # Anyone can mount tha HDD!!!!!!
+      "nofail" # No biggie if we cant mount it <:-D
+    ];
+  };
 
   # Set your time zone.
   time.timeZone = "Europe/London";
@@ -85,7 +100,6 @@
     package = config.boot.kernelPackages.nvidiaPackages.stable;
   };
 
-  programs.zsh.enable = true;
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.hirw = {
     isNormalUser = true;
@@ -101,7 +115,7 @@
   services.displayManager.autoLogin.user = "hirw";
 
   services.xremap = {
-    # withHypr = true;
+    withHypr = true;
     userName = "hirw";
     config = {
       keymap = [
@@ -115,58 +129,60 @@
     };
   };
 
-  # Install firefox.
-  programs.firefox.enable = true;
-
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
 
-  # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
     vim
     wayland
-    grim # screenshot functionality
-    slurp # screenshot functionality
+    grim
+    slurp # snipping tool thing
+    hyprshot
     wl-clipboard # wl-copy and wl-paste for copy/paste from stdin / stdout
-    mako # notification system developed by swaywm maintainer
-    swaylock
     git
     openssh
     gcc
     nodejs_22
     ripgrep
     unzip
+    qimgv # image previewing
+    wofi
+    playerctl
+    waybar
+    pavucontrol
+    dunst
+    zsh
   ];
 
-  # Some programs need SUID wrappers, can be configured further or are
-  # started in user sessions.
-  # programs.mtr.enable = true;
-  # programs.gnupg.agent = {
-  #   enable = true;
-  #   enableSSHSupport = true;
-  # };
-
-  programs.sway = {
+  programs.nm-applet.enable = true; # Network manager applet
+  programs.firefox.enable = true;
+  programs.xfconf.enable = true; # For configuring thunar settings
+  programs.thunar = {
     enable = true;
-    wrapperFeatures.gtk = true;
+    plugins = with pkgs.xfce; [
+      thunar-archive-plugin
+    ];
   };
+  programs.zsh.enable = true;
+  programs.hyprland.enable = true;
 
-  # List services that you want to enable:
-
-  # Enable the OpenSSH daemon.
-  # services.openssh.enable = true;
-
+  # Services
   services.greetd = {
     enable = true;
     settings = rec {
       initial_session = {
-        command = "${pkgs.sway}/bin/sway --unsupported-gpu";
+        # command = "${pkgs.sway}/bin/sway --unsupported-gpu";
+        command = "${pkgs.hyprland}/bin/Hyprland";
         user = "hirw";
       };
       default_session = initial_session;
     };
   };
+
+  # required for certain thunar functionality
+  services.gvfs.enable = true; # Mount, trash, and other functionalities
+  services.tumbler.enable = true; # Thunar thumbnails
 
   # Open ports in the firewall.
   # networking.firewall.allowedTCPPorts = [ ... ];
