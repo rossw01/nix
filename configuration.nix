@@ -75,9 +75,20 @@
   security.rtkit.enable = true;
   services.pipewire = {
     enable = true;
-    alsa.enable = true;
-    alsa.support32Bit = true;
+    alsa = {
+      enable = true;
+      support32Bit = true;
+    };
     pulse.enable = true;
+    extraConfig.pipewire = {
+      # Helps prevent buffer underrun causing stuttering
+      "context.properties" = {
+        "default.clock.rate" = 44100;
+        "default.clock.quantum" = 256;
+        "default.clock.min-quantum" = 128;
+        "default.clock.max-quantum" = 1024;
+      };
+    };
     # If you want to use JACK applications, uncomment this
     #jack.enable = true;
   };
