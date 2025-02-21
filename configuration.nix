@@ -154,6 +154,7 @@
     git
     openssh
     gcc
+    python314
     nodejs_22
     ripgrep
     unzip
@@ -164,6 +165,7 @@
     pavucontrol
     dunst
     zsh
+    inotify-tools
   ];
 
   programs.nm-applet.enable = true; # Network manager applet
@@ -194,6 +196,17 @@
   # required for certain thunar functionality
   services.gvfs.enable = true; # Mount, trash, and other functionalities
   services.tumbler.enable = true; # Thunar thumbnails
+
+  services.postgresql = {
+    enable = true;
+    ensureDatabases = [ "hirw" ];
+    authentication = pkgs.lib.mkOverride 10 ''
+      #type  database  DBuser  address       auth-method
+      local  all       all                   trust
+      host   all       all     127.0.0.1/32  trust
+      host   all       all     ::1/128       trust
+    '';
+  };
 
   # Open ports in the firewall.
   # networking.firewall.allowedTCPPorts = [ ... ];
