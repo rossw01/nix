@@ -27,6 +27,7 @@
     options = [
       "users" # Anyone can mount tha HDD!!!!!!
       "nofail" # No biggie if we cant mount it <:-D
+      "x-gvfs-show" # Show in thunar
     ];
   };
 
@@ -34,8 +35,9 @@
     device = "/dev/disk/by-uuid/01DAEB9EA9367710";
     fsType = "ntfs";
     options = [
-      "users" # Anyone can mount tha HDD!!!!!!
+      "users" # Anyone can mount tha SSD!!!!!!
       "nofail" # No biggie if we cant mount it <:-D
+      "x-gvfs-show" # Show in thunar
     ];
   };
 
@@ -106,7 +108,7 @@
   users.users.hirw = {
     isNormalUser = true;
     description = "Ross Williamson";
-    extraGroups = [ "networkmanager" "wheel" ];
+    extraGroups = [ "networkmanager" "wheel" "audio" ];
     shell = pkgs.zsh;
     packages = with pkgs; [
     #  thunderbird
@@ -157,19 +159,23 @@
     dunst
     zsh
     inotify-tools
+    rtkit
   ];
 
-  programs.nm-applet.enable = true; # Network manager applet
-  programs.firefox.enable = true;
-  programs.xfconf.enable = true; # For configuring thunar settings
-  programs.thunar = {
-    enable = true;
-    plugins = with pkgs.xfce; [
-      thunar-archive-plugin
-    ];
+  programs = {
+    nm-applet.enable = true; # Network manager applet
+    firefox.enable = true;
+    xfconf.enable = true; # For configuring thunar settings
+    thunar = {
+      enable = true;
+      plugins = with pkgs.xfce; [
+        thunar-archive-plugin
+      ];
+    };
+    zsh.enable = true;
+    hyprland.enable = true;
+    steam.enable = true;
   };
-  programs.zsh.enable = true;
-  programs.hyprland.enable = true;
 
   # Services
   services.greetd = {
@@ -212,6 +218,17 @@
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
   system.stateVersion = "24.11"; # Did you read the comment?
+
+  systemd.extraConfig = "DefaultLimitNOFILE=524288";
+  security.pam.loginLimits = [
+    { domain = "@audio"; item = "memlock"; type = "-"   ; value = "unlimited" ; }
+    { domain = "@audio"; item = "rtprio" ; type = "-"   ; value = "99"        ; }
+    { domain = "@audio"; item = "nofile" ; type = "soft"; value = "999999"    ; }
+    { domain = "@audio"; item = "nofile" ; type = "hard"; value = "999999"    ; }
+    { domain = "*"     ; item = "memlock"; type = "-"   ; value = "infinity"  ; }
+    { domain = "*"     ; item = "nofile" ; type = "-"   ; value = "8192"      ; }
+    { domain = "hirw"  ; item = "nofile" ; type = "hard"; value = "524288"    ; }
+  ];
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 }

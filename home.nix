@@ -28,6 +28,10 @@
     cider
     elixir
     erlang
+    vlc
+    gpu-screen-recorder-gtk
+    lutris
+    wine
 
     # # It is sometimes useful to fine-tune packages, for example, by applying
     # # overrides. You can do that directly here, just don't forget the
@@ -75,6 +79,8 @@
   #  /etc/profiles/per-user/hirw/etc/profile.d/hm-session-vars.sh
   #
   home.sessionVariables = {
+    PIPEWIRE_DEBUG = 4;
+    PW_LOG_LEVEL = 4;
     EDITOR = "nvim";
     NIX_CONF = "$HOME/.config/nix";
     NVIM_CONF = "$HOME/.config/nvim";
