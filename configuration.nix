@@ -5,96 +5,39 @@
 { config, pkgs, inputs, ... }:
 
 {
-  imports =
-    [ # Include the results of the hardware scan.
-      ./hardware-configuration.nix
-      inputs.xremap-flake.nixosModules.default
+  imports = [
+    ./system/network.nix
+    ./system/file_system.nix
+    ./system/locale.nix
+    ./system/audio.nix
+    ./remaps.nix
+    ./hardware-configuration.nix # Include the results of the hardware scan.
+    inputs.xremap-flake.nixosModules.default
+  ];
+
+  boot = {
+    loader = {
+      systemd-boot.enable = true;
+      efi.canTouchEfiVariables = true;
+    };
+    kernelPackages = pkgs.linuxPackages_zen;
+    kernelModules = [
+      "nvidia_uvm" # obs fix
     ];
-
-  # Bootloader.
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
-
-  networking.hostName = "nixos"; # Define your hostname.
-  # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
-
-  # Enable networking
-  networking.networkmanager.enable = true;
-
-  fileSystems."/mnt/HDD" = {
-    device = "/dev/disk/by-uuid/01D8BA822599C960";
-    fsType = "ntfs";
-    options = [
-      "users" # Anyone can mount tha HDD!!!!!!
-      "nofail" # No biggie if we cant mount it <:-D
-      "x-gvfs-show" # Show in thunar
-    ];
-  };
-
-  fileSystems."/mnt/SSD2" = {
-    device = "/dev/disk/by-uuid/01DAEB9EA9367710";
-    fsType = "ntfs";
-    options = [
-      "users" # Anyone can mount tha SSD!!!!!!
-      "nofail" # No biggie if we cant mount it <:-D
-      "x-gvfs-show" # Show in thunar
-    ];
-  };
-
-  # Set your time zone.
-  time.timeZone = "Europe/London";
-
-  # Select internationalisation properties.
-  i18n.defaultLocale = "en_GB.UTF-8";
-  i18n.extraLocaleSettings = {
-    LC_ADDRESS = "en_GB.UTF-8";
-    LC_IDENTIFICATION = "en_GB.UTF-8";
-    LC_MEASUREMENT = "en_GB.UTF-8";
-    LC_MONETARY = "en_GB.UTF-8";
-    LC_NAME = "en_GB.UTF-8";
-    LC_NUMERIC = "en_GB.UTF-8";
-    LC_PAPER = "en_GB.UTF-8";
-    LC_TELEPHONE = "en_GB.UTF-8";
-    LC_TIME = "en_GB.UTF-8";
   };
 
   # Enable CUPS to print documents.
   services.printing.enable = true;
 
-  # Enable sound with pipewire.
-
-  # nix-shell -p pavucontrol -> playback
-  hardware.pulseaudio.enable = false;
-  security.rtkit.enable = true;
-  services.pipewire = {
-    enable = true;
-    alsa = {
-      enable = true;
-      support32Bit = true;
-    };
-    pulse.enable = true;
-    extraConfig.pipewire = {
-      # Helps prevent buffer underrun causing stuttering
-      "context.properties" = {
-        "default.clock.rate" = 44100;
-        "default.clock.quantum" = 256;
-        "default.clock.min-quantum" = 128;
-        "default.clock.max-quantum" = 1024;
-      };
-    };
-    # If you want to use JACK applications, uncomment this
-    #jack.enable = true;
-  };
+  hardware.keyboard.qmk.enable = true;
 
   # Enable graphics with nvidia drivers
   # Enable OpenGL
-  hardware.graphics = {
-    enable = true;
-  };
+  hardware.graphics = { enable = true; };
 
   # Load nvidia driver for Xorg and Wayland
-  services.xserver.videoDrivers = ["nvidia"];
-  
+  services.xserver.videoDrivers = [ "nvidia" ];
+
   hardware.nvidia = {
     modesetting.enable = true;
     powerManagement.enable = false;
@@ -108,36 +51,20 @@
   users.users.hirw = {
     isNormalUser = true;
     description = "Ross Williamson";
-    extraGroups = [ "networkmanager" "wheel" "audio" ];
+    extraGroups = [ "networkmanager" "wheel" ];
     shell = pkgs.zsh;
-    packages = with pkgs; [
-    #  thunderbird
-    ];
   };
 
   # Enable automatic login for the user.
   services.displayManager.autoLogin.user = "hirw";
-
-  services.xremap = {
-    withHypr = true;
-    userName = "hirw";
-    config = {
-      keymap = [
-        {
-          name = "General Remaps";
-          remap = {
-            "CapsLock" = "Esc";
-          };
-        }
-      ];
-    };
-  };
 
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
 
   # $ nix search wget
   environment.systemPackages = with pkgs; [
+    coreutils
+    man-pages
     vim
     wayland
     grim
@@ -147,19 +74,35 @@
     git
     openssh
     gcc
+    clang_19
+    clang-tools
     python314
     nodejs_22
+    elixir
+    erlang
+    ruby
+    rustup
+    cmake
     ripgrep
     unzip
-    qimgv # image previewing
+    qimgv
     wofi
     playerctl
     waybar
-    pavucontrol
     dunst
     zsh
     inotify-tools
     rtkit
+    via
+    fd
+    file-roller
+    SDL2
+    ffmpeg
+    pkg-config
+    fontconfig
+    linux-firmware
+    hyprpaper
+    hyprpolkitagent
   ];
 
   programs = {
@@ -168,13 +111,11 @@
     xfconf.enable = true; # For configuring thunar settings
     thunar = {
       enable = true;
-      plugins = with pkgs.xfce; [
-        thunar-archive-plugin
-      ];
+      plugins = with pkgs.xfce; [ thunar-archive-plugin ];
     };
     zsh.enable = true;
-    hyprland.enable = true;
     steam.enable = true;
+    hyprland.enable = true;
   };
 
   # Services
@@ -189,6 +130,8 @@
       default_session = initial_session;
     };
   };
+
+  services.udev.packages = [ pkgs.via ];
 
   # required for certain thunar functionality
   services.gvfs.enable = true; # Mount, trash, and other functionalities
@@ -205,12 +148,6 @@
     '';
   };
 
-  # Open ports in the firewall.
-  # networking.firewall.allowedTCPPorts = [ ... ];
-  # networking.firewall.allowedUDPPorts = [ ... ];
-  # Or disable the firewall altogether.
-  # networking.firewall.enable = false;
-
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
   # on your system were taken. It‘s perfectly fine and recommended to leave
@@ -219,16 +156,10 @@
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
   system.stateVersion = "24.11"; # Did you read the comment?
 
-  systemd.extraConfig = "DefaultLimitNOFILE=524288";
-  security.pam.loginLimits = [
-    { domain = "@audio"; item = "memlock"; type = "-"   ; value = "unlimited" ; }
-    { domain = "@audio"; item = "rtprio" ; type = "-"   ; value = "99"        ; }
-    { domain = "@audio"; item = "nofile" ; type = "soft"; value = "999999"    ; }
-    { domain = "@audio"; item = "nofile" ; type = "hard"; value = "999999"    ; }
-    { domain = "*"     ; item = "memlock"; type = "-"   ; value = "infinity"  ; }
-    { domain = "*"     ; item = "nofile" ; type = "-"   ; value = "8192"      ; }
-    { domain = "hirw"  ; item = "nofile" ; type = "hard"; value = "524288"    ; }
-  ];
+  security = {
+    rtkit.enable = true;
+    polkit.enable = true;
+  };
 
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 }

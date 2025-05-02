@@ -1,12 +1,28 @@
-{ config, pkgs, ... }: {
-  nixpkgs.config = {
-    allowUnfree = true;
-    allowUnfreePredicate = (_: true);
+{ config, pkgs, ... }:
+
+{
+  nixpkgs = {
+    config = {
+      allowUnfree = true;
+      allowUnfreePredicate = (_: true);
+    };
+    overlays = [ (import ./overlays/vlc.nix) ];
   };
-  # Home Manager needs a bit of information about you and the paths it should
-  # manage.
+
+  # Let Home Manager install and manage itself.
+  programs.home-manager.enable = true;
+
   home.username = "hirw";
   home.homeDirectory = "/home/hirw";
+
+  home.sessionVariables = {
+    PIPEWIRE_DEBUG = 4;
+    PW_LOG_LEVEL = 4;
+    EDITOR = "nvim";
+    NIX_CONF = "$HOME/.config/nix";
+    NVIM_CONF = "$HOME/.config/nvim";
+    NIXOS_OZONE_WL = 1;
+  };
 
   # This value determines the Home Manager release that your configuration is
   # compatible with. This helps avoid breakage when a new Home Manager release
@@ -17,27 +33,18 @@
   # release notes.
   home.stateVersion = "24.11"; # Please read the comment before changing.
 
-  # The home.packages option allows you to install Nix packages into your
-  # environment.
-
   home.packages = with pkgs; [
-    (nerdfonts.override { fonts = [ "IosevkaTerm" ]; })
+    (nerdfonts.override { fonts = [ "JetBrainsMono" "IosevkaTerm" "Lilex" ]; })
     neovim
     kitty
     discord
-    cider
-    elixir
-    erlang
-    vlc
     gpu-screen-recorder-gtk
-    lutris
     wine
-
-    # # It is sometimes useful to fine-tune packages, for example, by applying
-    # # overrides. You can do that directly here, just don't forget the
-    # # parentheses. Maybe you want to install Nerd Fonts with a limited number of
-    # # fonts?
-    # (pkgs.nerdfonts.override { fonts = [ "FantasqueSansMono" ]; })
+    via
+    tiled
+    nicotine-plus
+    obs-studio
+    vlc
 
     # # You can also create simple shell scripts directly inside your
     # # configuration. For example, this adds a command 'my-hello' to your
@@ -62,38 +69,11 @@
     # '';
   };
 
-  # Home Manager can also manage your environment variables through
-  # 'home.sessionVariables'. These will be explicitly sourced when using a
-  # shell provided by Home Manager. If you don't want to manage your shell
-  # through Home Manager then you have to manually source 'hm-session-vars.sh'
-  # located at either
-  #
-  #  ~/.nix-profile/etc/profile.d/hm-session-vars.sh
-  #
-  # or
-  #
-  #  ~/.local/state/nix/profiles/profile/etc/profile.d/hm-session-vars.sh
-  #
-  # or
-  #
-  #  /etc/profiles/per-user/hirw/etc/profile.d/hm-session-vars.sh
-  #
-  home.sessionVariables = {
-    PIPEWIRE_DEBUG = 4;
-    PW_LOG_LEVEL = 4;
-    EDITOR = "nvim";
-    NIX_CONF = "$HOME/.config/nix";
-    NVIM_CONF = "$HOME/.config/nvim";
-    NIXOS_OZONE_WL = 1;
-  };
-
-  # Let Home Manager install and manage itself.
-  programs.home-manager.enable = true;
-
   programs.zsh = {
     enable = true;
     oh-my-zsh = {
       enable = true;
+      plugins = [ "colored-man-pages" ];
     };
     shellAliases = {
       nfc = "$EDITOR $NIX_CONF";
@@ -107,9 +87,14 @@
       }
       {
         name = "powerlevel10k-config";
-        src = ./p10k-config;
+        src = ./dots/p10k-config;
         file = ".p10k.zsh";
       }
     ];
+  };
+
+  programs.emacs = {
+    enable = true;
+    extraPackages = epkgs: [ epkgs.doom ];
   };
 }
