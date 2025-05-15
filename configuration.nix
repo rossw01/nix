@@ -12,7 +12,6 @@
     ./system/audio.nix
     ./remaps.nix
     ./hardware-configuration.nix # Include the results of the hardware scan.
-    inputs.xremap-flake.nixosModules.default
   ];
 
   boot = {

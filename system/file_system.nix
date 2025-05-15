@@ -5,11 +5,12 @@
 
   fileSystems."/mnt/HDD" = {
     device = "/dev/disk/by-uuid/01D8BA822599C960";
-    fsType = "ntfs";
+    fsType = "ntfs-3g";
     options = [
       "users" # Anyone can mount tha HDD!!!!!!
       "nofail" # No biggie if we cant mount it <:-D
       "x-gvfs-show" # Show in thunar
+      "rw"
     ];
   };
 

@@ -6,7 +6,7 @@
       allowUnfree = true;
       allowUnfreePredicate = (_: true);
     };
-    overlays = [ (import ./overlays/vlc.nix) ];
+    overlays = [ (import ./overlays/vlc.nix) (import ./overlays/discord.nix) ];
   };
 
   # Let Home Manager install and manage itself.
@@ -35,9 +35,9 @@
 
   home.packages = with pkgs; [
     (nerdfonts.override { fonts = [ "JetBrainsMono" "IosevkaTerm" "Lilex" ]; })
-    neovim
     kitty
     discord
+    lutris
     gpu-screen-recorder-gtk
     wine
     via
@@ -45,6 +45,9 @@
     nicotine-plus
     obs-studio
     vlc
+    zathura
+    lua
+    lua52Packages.luarocks
 
     # # You can also create simple shell scripts directly inside your
     # # configuration. For example, this adds a command 'my-hello' to your
@@ -91,6 +94,11 @@
         file = ".p10k.zsh";
       }
     ];
+  };
+
+  programs.neovim = {
+    enable = true;
+    extraPackages = with pkgs; [ lua52Packages.lua-lsp ];
   };
 
   programs.emacs = {
